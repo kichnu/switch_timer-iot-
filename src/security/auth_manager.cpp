@@ -5,19 +5,15 @@
 #include "../config/credentials_manager.h"
 
 void initAuthManager() {
-    LOG_INFO("");
     LOG_INFO("Authentication manager initialized");
 
-    LOG_INFO("Using %s admin credentials", areCredentialsLoaded() ? "FRAM" : "fallback");
     if (areCredentialsLoaded()) {
-        LOG_INFO("");
-        LOG_INFO("Using FRAM admin credentials");
+        LOG_INFO("Using NVS admin credentials");
     } else {
-        LOG_WARNING("");
         LOG_WARNING("====================================");
-        LOG_WARNING("⚠️ NO FRAM CREDENTIALS - Web authentication DISABLED!");
-        LOG_WARNING("⚠️ Use Captive Portal to configure credentials!");
-        LOG_WARNING("");
+        LOG_WARNING("No NVS credentials - web authentication DISABLED");
+        LOG_WARNING("Use Captive Portal to configure credentials");
+        LOG_WARNING("====================================");
     }
 }
 
@@ -32,79 +28,47 @@ bool isIPAllowed(IPAddress ip) {
 
 String hashPassword(const String& password) {
     byte hash[32];
-    
+
     mbedtls_md_context_t ctx;
     mbedtls_md_type_t md_type = MBEDTLS_MD_SHA256;
-    
+
     mbedtls_md_init(&ctx);
     mbedtls_md_setup(&ctx, mbedtls_md_info_from_type(md_type), 0);
     mbedtls_md_starts(&ctx);
     mbedtls_md_update(&ctx, (const unsigned char*)password.c_str(), password.length());
     mbedtls_md_finish(&ctx, hash);
     mbedtls_md_free(&ctx);
-    
+
     String hashString = "";
     for (int i = 0; i < 32; i++) {
         char str[3];
         sprintf(str, "%02x", (int)hash[i]);
         hashString += str;
     }
-    
+
     return hashString;
 }
 
 bool verifyPassword(const String& password) {
     if (!areCredentialsLoaded()) {
-        LOG_ERROR("");
-        LOG_ERROR("====================================");
-        LOG_ERROR("🔒 Authentication BLOCKED - No FRAM credentials loaded!");
-        LOG_ERROR("🔧 Use Captive Portal to configure credentials first:");
-        LOG_ERROR("   1. Hold button for 5 seconds during boot");
-        LOG_ERROR("   2. Connect to ESP32-WATER-SETUP WiFi");
-        LOG_ERROR("   3. Configure credentials in browser");
-        LOG_ERROR("====================================");
-        return false;  // Force FRAM setup!
-    }
-    
-    String inputHash = hashPassword(password);
-    String expectedHash = String(getAdminPasswordHash());
-    
-    if (expectedHash.length() == 0 || expectedHash == "NO_AUTH_REQUIRES_FRAM_PROGRAMMING") {
-        LOG_ERROR("");
-        LOG_ERROR("Invalid admin hash from FRAM - check credential programming");
+        LOG_ERROR("Authentication BLOCKED - no NVS credentials loaded");
         return false;
     }
-    
+
+    String inputHash = hashPassword(password);
+    String expectedHash = String(getAdminPasswordHash());
+
+    if (expectedHash.length() == 0) {
+        LOG_ERROR("Invalid admin hash from NVS");
+        return false;
+    }
+
     bool valid = (inputHash == expectedHash);
 
     if (valid) {
-        LOG_INFO("");
-        LOG_INFO("✅ Password verification successful (FRAM credentials)");
+        LOG_INFO("Password verification successful");
     } else {
-        LOG_WARNING("");
-        LOG_WARNING("====================================");
-        LOG_WARNING("❌ Password verification failed");
-        LOG_WARNING("💡 Verify admin password was correctly programmed to FRAM"); 
-        LOG_WARNING("====================================");
+        LOG_WARNING("Password verification failed");
     }
     return valid;
-}
-
-// ============================================
-// TRUSTED PROXY IP - VPS reverse proxy
-// Requests from this IP bypass authentication
-// ============================================
-
-// #include "../core/logging.h"
-
-// VPS WireGuard IP - requests from here are trusted
-const IPAddress TRUSTED_VPS_IP(10, 99, 0, 1);
-
-bool isTrustedProxyIP(IPAddress ip) {
-    if (ip == TRUSTED_VPS_IP) {
-        // LOG_INFO("");
-        // LOG_INFO("🔓 Trusted VPS proxy IP: %s", ip.toString().c_str());
-        return true;
-    }
-    return false;
 }

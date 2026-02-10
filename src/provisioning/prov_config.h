@@ -19,7 +19,7 @@
 #define PROV_HOLD_MARGIN_MS     500     // Extra time margin for feedback
 
 // Access Point Configuration
-#define PROV_AP_SSID            "ESP32-WATER-SETUP"
+#define PROV_AP_SSID            "SWITCH"
 #define PROV_AP_PASSWORD        "setup12345"
 #define PROV_AP_CHANNEL         6
 #define PROV_AP_MAX_CLIENTS     4

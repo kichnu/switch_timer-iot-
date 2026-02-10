@@ -17,7 +17,7 @@ void initWiFi() {
     const char* password = getWiFiPassword();
     
     LOG_INFO("Connecting to WiFi: %s", ssid);
-    LOG_INFO("Credentials source: %s", areCredentialsLoaded() ? "FRAM" : "Hardcoded fallback");
+    LOG_INFO("Credentials source: %s", areCredentialsLoaded() ? "NVS" : "Hardcoded fallback");
     
     WiFi.begin(ssid, password);
     
@@ -30,7 +30,7 @@ void initWiFi() {
     
     if (WiFi.status() == WL_CONNECTED) {
         LOG_INFO("WiFi connected - IP: %s", WiFi.localIP().toString().c_str());
-        LOG_INFO("Using %s credentials", areCredentialsLoaded() ? "FRAM" : "fallback");
+        LOG_INFO("Using %s credentials", areCredentialsLoaded() ? "NVS" : "fallback");
     } else {
         LOG_ERROR("WiFi connection failed after 50 attempts");
         if (!areCredentialsLoaded()) {
