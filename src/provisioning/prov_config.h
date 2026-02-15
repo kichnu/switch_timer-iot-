@@ -8,7 +8,7 @@
 // ===============================
 
 // Button Configuration
-#define PROV_BUTTON_PIN         8       // GPIO8 (same as RESET_PIN)
+#define PROV_BUTTON_PIN         7       // GPIO8 (same as RESET_PIN)
 #define PROV_BUTTON_HOLD_MS     5000    // Hold time to enter provisioning (5 seconds)
 #define PROV_BUTTON_DEBOUNCE_MS 100     // Debounce time
 
@@ -22,7 +22,7 @@
 #define PROV_AP_SSID            "SWITCH"
 #define PROV_AP_PASSWORD        "setup12345"
 #define PROV_AP_CHANNEL         6
-#define PROV_AP_MAX_CLIENTS     4
+#define PROV_AP_MAX_CLIENTS     2
 
 // DNS Server Configuration
 #define PROV_DNS_PORT           53

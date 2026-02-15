@@ -26,6 +26,30 @@ bool isIPAllowed(IPAddress ip) {
     return false;
 }
 
+bool isTrustedProxy(IPAddress ip) {
+    return ip == TRUSTED_PROXY_IP;
+}
+
+IPAddress resolveClientIP(AsyncWebServerRequest* request) {
+    IPAddress sourceIP = request->client()->remoteIP();
+
+    if (isTrustedProxy(sourceIP) && request->hasHeader("X-Forwarded-For")) {
+        String xff = request->getHeader("X-Forwarded-For")->value();
+        int comma = xff.indexOf(',');
+        String clientStr = (comma > 0) ? xff.substring(0, comma) : xff;
+        clientStr.trim();
+
+        IPAddress realIP;
+        if (realIP.fromString(clientStr)) {
+            LOG_INFO("Proxy request: %s via %s", clientStr.c_str(), sourceIP.toString().c_str());
+            return realIP;
+        }
+        LOG_WARNING("Failed to parse X-Forwarded-For: %s", xff.c_str());
+    }
+
+    return sourceIP;
+}
+
 String hashPassword(const String& password) {
     byte hash[32];
 

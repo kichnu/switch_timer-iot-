@@ -2,8 +2,8 @@
 #define CONF_H
 
 // ============== PIN CONFIGURATION ==============
-#define INPUT_PIN               3       // GPIO3 - wejście sterujące (active LOW, zwarcie do masy)
-#define OUTPUT_PIN              4       // GPIO4 - wyjście sterujące (active HIGH)
+#define INPUT_PIN               7       // GPIO7 - wejście sterujące (active LOW, zwarcie do masy)
+#define OUTPUT_PIN              21       // GPIO21 - wyjście sterujące (active HIGH)
 
 // ============== INPUT DEBOUNCE ==============
 #define DEBOUNCE_INTERVAL_MS    50      // Przerwa między dwoma pomiarami [ms]
@@ -14,7 +14,7 @@
                                         // Zakres 1500–3000 ms = ignorowany (martwa strefa)
 
 // ============== OUTPUT TIMING ==============
-#define CYCLE_TIME_S            180     // Czas ACTIVE w sekundach
+#define CYCLE_TIME_S            300     // Czas ACTIVE w sekundach
 #define CYCLE_TIME_MS           (CYCLE_TIME_S * 1000UL)
 
 // ============== INPUT/OUTPUT LOGIC LEVELS ==============

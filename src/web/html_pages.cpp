@@ -134,7 +134,7 @@ const char* LOGIN_HTML = R"rawliteral(
             })
             .then(function(r) { return r.json(); })
             .then(function(d) {
-                if (d.success) { window.location.href = "/"; }
+                if (d.success) { window.location.href = "./"; }
                 else { err.textContent = d.error || "Login failed"; err.style.display = "block"; }
             })
             .catch(function() {
@@ -436,7 +436,7 @@ const char* DASHBOARD_HTML = R"rawliteral(
             if (countdownInterval) { clearInterval(countdownInterval); countdownInterval = null; }
 
             var ov = document.createElement("div");
-            ov.innerHTML = '<div style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.85);z-index:9999;display:flex;justify-content:center;align-items:center;"><div style="background:var(--bg-card);border:1px solid var(--border);padding:40px;border-radius:12px;text-align:center;max-width:400px;margin:20px;"><h2 style="color:var(--accent-red);margin-bottom:15px;">Session Expired</h2><p style="color:var(--text-secondary);margin-bottom:25px;">Please log in again.</p><a href="/login" style="display:inline-block;padding:12px 30px;background:linear-gradient(135deg,var(--accent-cyan),var(--accent-blue));color:var(--bg-primary);text-decoration:none;border-radius:8px;font-weight:bold;">Login</a></div></div>';
+            ov.innerHTML = '<div style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.85);z-index:9999;display:flex;justify-content:center;align-items:center;"><div style="background:var(--bg-card);border:1px solid var(--border);padding:40px;border-radius:12px;text-align:center;max-width:400px;margin:20px;"><h2 style="color:var(--accent-red);margin-bottom:15px;">Session Expired</h2><p style="color:var(--text-secondary);margin-bottom:25px;">Please log in again.</p><a href="login" style="display:inline-block;padding:12px 30px;background:linear-gradient(135deg,var(--accent-cyan),var(--accent-blue));color:var(--bg-primary);text-decoration:none;border-radius:8px;font-weight:bold;">Login</a></div></div>';
             document.body.appendChild(ov);
         }
 
@@ -559,7 +559,7 @@ const char* DASHBOARD_HTML = R"rawliteral(
         // ============================================
         function logout() {
             fetch("api/logout", {method: "POST"}).then(function() {
-                window.location.href = "/login";
+                window.location.href = "login";
             });
         }
 

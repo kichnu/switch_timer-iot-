@@ -17,15 +17,15 @@ extern SwitchTimer switchTimer;
 
 void handleDashboard(AsyncWebServerRequest *request) {
     if (!checkAuthentication(request)) {
-        request->redirect("/login");
+        request->redirect("login");
         return;
     }
     request->send(200, "text/html", DASHBOARD_HTML);
 }
 
 void handleLoginPage(AsyncWebServerRequest *request) {
-    IPAddress clientIP = request->client()->remoteIP();
-    if (!isIPAllowed(clientIP)) {
+    IPAddress sourceIP = request->client()->remoteIP();
+    if (!isIPAllowed(sourceIP) && !isTrustedProxy(sourceIP)) {
         request->send(403, "text/plain", "Forbidden");
         return;
     }
@@ -37,9 +37,11 @@ void handleLoginPage(AsyncWebServerRequest *request) {
 // ============================================
 
 void handleLogin(AsyncWebServerRequest *request) {
-    IPAddress clientIP = request->client()->remoteIP();
+    IPAddress sourceIP = request->client()->remoteIP();
+    bool viaProxy = isTrustedProxy(sourceIP);
+    IPAddress clientIP = viaProxy ? resolveClientIP(request) : sourceIP;
 
-    if (!isIPAllowed(clientIP)) {
+    if (!viaProxy && !isIPAllowed(clientIP)) {
         request->send(403, "application/json", "{\"success\":false,\"error\":\"Forbidden\"}");
         return;
     }
@@ -127,6 +129,22 @@ void handleStatus(AsyncWebServerRequest *request) {
     request->send(200, "application/json", json);
 }
 
+void handleHealth(AsyncWebServerRequest *request) {
+    IPAddress sourceIP = request->client()->remoteIP();
+    if (!isIPAllowed(sourceIP) && !isTrustedProxy(sourceIP)) {
+        request->send(403, "application/json", "{\"error\":\"Forbidden\"}");
+        return;
+    }
+
+    String json = "{";
+    json += "\"status\":\"ok\",";
+    json += "\"device_name\":\"" + String(getDeviceID()) + "\",";
+    json += "\"uptime\":" + String(millis());
+    json += "}";
+
+    request->send(200, "application/json", json);
+}
+
 void handleRelayAddTime(AsyncWebServerRequest *request) {
     if (!checkAuthentication(request)) {
         request->send(401, "application/json", "{\"error\":\"Unauthorized\"}");
@@ -142,7 +160,7 @@ void handleRelayAddTime(AsyncWebServerRequest *request) {
     json += "}";
 
     request->send(200, "application/json", json);
-    LOG_INFO("Web: relay add-time from %s", request->client()->remoteIP().toString().c_str());
+    LOG_INFO("Web: relay add-time from %s", resolveClientIP(request).toString().c_str());
 }
 
 void handleRelayForceOn(AsyncWebServerRequest *request) {
@@ -160,7 +178,7 @@ void handleRelayForceOn(AsyncWebServerRequest *request) {
     json += "}";
 
     request->send(200, "application/json", json);
-    LOG_INFO("Web: relay force-on from %s", request->client()->remoteIP().toString().c_str());
+    LOG_INFO("Web: relay force-on from %s", resolveClientIP(request).toString().c_str());
 }
 
 void handleRelayOff(AsyncWebServerRequest *request) {
@@ -178,5 +196,5 @@ void handleRelayOff(AsyncWebServerRequest *request) {
     json += "}";
 
     request->send(200, "application/json", json);
-    LOG_INFO("Web: relay off from %s", request->client()->remoteIP().toString().c_str());
+    LOG_INFO("Web: relay off from %s", resolveClientIP(request).toString().c_str());
 }

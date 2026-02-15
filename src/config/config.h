@@ -11,6 +11,9 @@
 extern const IPAddress ALLOWED_IPS[];
 extern const int ALLOWED_IPS_COUNT;
 
+// ================= TRUSTED PROXY (WireGuard VPS) =================
+extern const IPAddress TRUSTED_PROXY_IP;
+
 // ================= SECURITY CONSTANTS =================
 const unsigned long SESSION_TIMEOUT_MS = 1800000;   // 30 minutes
 const unsigned long RATE_LIMIT_WINDOW_MS = 1000;    // 1 second window

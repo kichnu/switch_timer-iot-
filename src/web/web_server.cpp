@@ -18,14 +18,15 @@ void initWebServer() {
 
     // API endpoints
     server.on("/api/status", HTTP_GET, handleStatus);
+    server.on("/api/health", HTTP_GET, handleHealth);
     server.on("/api/relay/add-time", HTTP_POST, handleRelayAddTime);
     server.on("/api/relay/force-on", HTTP_POST, handleRelayForceOn);
     server.on("/api/relay/off", HTTP_POST, handleRelayOff);
 
-    // 404 handler with whitelist enforcement
+    // 404 handler with whitelist/proxy enforcement
     server.onNotFound([](AsyncWebServerRequest* request) {
-        IPAddress clientIP = request->client()->remoteIP();
-        if (!isIPAllowed(clientIP)) {
+        IPAddress sourceIP = request->client()->remoteIP();
+        if (!isIPAllowed(sourceIP) && !isTrustedProxy(sourceIP)) {
             request->send(403, "text/plain", "Forbidden");
             return;
         }
@@ -37,26 +38,29 @@ void initWebServer() {
 }
 
 bool checkAuthentication(AsyncWebServerRequest* request) {
-    IPAddress clientIP = request->client()->remoteIP();
+    IPAddress sourceIP = request->client()->remoteIP();
 
-    // IP whitelist check
-    if (!isIPAllowed(clientIP)) {
-        LOG_WARNING("IP %s not on whitelist - access denied", clientIP.toString().c_str());
+    // VPS proxy auto-auth — VPS already authenticated user via auth_request + session
+    if (isTrustedProxy(sourceIP)) {
+        return true;
+    }
+
+    // Direct LAN access — full auth chain
+    if (!isIPAllowed(sourceIP)) {
+        LOG_WARNING("IP %s not on whitelist - access denied", sourceIP.toString().c_str());
         return false;
     }
 
-    // Check if IP is blocked
-    if (isIPBlocked(clientIP)) {
+    if (isIPBlocked(sourceIP)) {
         return false;
     }
 
-    // Check rate limiting
-    if (isRateLimited(clientIP)) {
-        recordFailedAttempt(clientIP);
+    if (isRateLimited(sourceIP)) {
+        recordFailedAttempt(sourceIP);
         return false;
     }
 
-    recordRequest(clientIP);
+    recordRequest(sourceIP);
 
     // Check session cookie
     if (request->hasHeader("Cookie")) {
@@ -68,12 +72,12 @@ bool checkAuthentication(AsyncWebServerRequest* request) {
             if (tokenEnd == -1) tokenEnd = cookie.length();
 
             String token = cookie.substring(tokenStart, tokenEnd);
-            if (validateSession(token, clientIP)) {
+            if (validateSession(token, sourceIP)) {
                 return true;
             }
         }
     }
 
-    recordFailedAttempt(clientIP);
+    recordFailedAttempt(sourceIP);
     return false;
 }

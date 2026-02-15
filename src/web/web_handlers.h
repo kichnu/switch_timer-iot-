@@ -13,6 +13,7 @@ void handleLogout(AsyncWebServerRequest *request);
 
 // API handlers
 void handleStatus(AsyncWebServerRequest *request);
+void handleHealth(AsyncWebServerRequest *request);
 void handleRelayAddTime(AsyncWebServerRequest *request);
 void handleRelayForceOn(AsyncWebServerRequest *request);
 void handleRelayOff(AsyncWebServerRequest *request);
